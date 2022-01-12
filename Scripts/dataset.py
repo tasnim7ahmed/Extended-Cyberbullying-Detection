@@ -15,7 +15,8 @@ torch.cuda.manual_seed(args.seed)
 class DatasetBert:
     def __init__(self, text, target, pretrained_model = args.pretrained_model):
         self.text = text
-        self.tokenizer = BertTokenizer.from_pretrained(pretrained_model)
+        self.tokenizer = BertTokenizer.from_pretrained(pretrained_model, pad_token = '[PAD]')
+        self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
         self.max_length = args.max_length
         self.target = target
 
