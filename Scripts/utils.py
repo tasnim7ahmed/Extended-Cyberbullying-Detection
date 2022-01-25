@@ -129,7 +129,13 @@ def oneHot(arr):
     return b
 
 def calc_roc_auc(all_labels, all_logits):
-    attributes = ['non-depressed','mild', 'moderate', 'severe']
+    attributes = []
+    if(args.classes==6):
+       attributes = ['Age', 'Ethnicity', 'Gender', 'Notcb', 'Others', 'Religion']
+    elif(args.classes==5):
+        attributes = ['Age', 'Ethnicity', 'Gender', 'Religion', 'Others',]
+    elif(args.classes==3):
+        attributes = ['None', 'Sexism', 'Racism']
     all_labels = oneHot(all_labels)
 
     # Compute ROC curve and ROC area for each class
