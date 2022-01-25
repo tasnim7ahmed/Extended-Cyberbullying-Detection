@@ -15,8 +15,9 @@ torch.cuda.manual_seed(args.seed)
 class DatasetBert:
     def __init__(self, text, target, pretrained_model = args.pretrained_model):
         self.text = text
-        self.tokenizer = BertTokenizer.from_pretrained(pretrained_model, pad_token = '[PAD]')
-        self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        self.tokenizer = BertTokenizer.from_pretrained(pretrained_model)
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.config.pad_token_id = self.config.eos_token_id
         self.max_length = args.max_length
         self.target = target
 
@@ -49,6 +50,7 @@ class DatasetGPT2:
     def __init__(self, text, target, pretrained_model = args.pretrained_model):
         self.text = text
         self.tokenizer = GPT2Tokenizer.from_pretrained(pretrained_model)
+        self.tokenizer.pad_token = "[PAD]"
         self.max_length = args.max_length
         self.target = target
 
@@ -67,13 +69,11 @@ class DatasetGPT2:
         )
 
         input_ids = inputs["input_ids"]
-        token_type_ids = inputs["token_type_ids"]
         attention_mask = inputs["attention_mask"]
 
         return{
             "input_ids":torch.tensor(input_ids,dtype = torch.long),
             "attention_mask":torch.tensor(attention_mask, dtype = torch.long),
-            "token_type_ids":torch.tensor(token_type_ids, dtype = torch.long),
             "target":torch.tensor(self.target[item], dtype = torch.long)
         }
 
@@ -182,6 +182,9 @@ def train_validate_test_split(df, train_percent=0.6, validate_percent=.2, seed=7
 
 
 if __name__=="__main__":
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+    print(tokenizer("Hello world"))
+    
     df = pd.read_csv(args.dataset_path+"data.csv").dropna()
     
     #Splitting the dataset

@@ -53,27 +53,29 @@ class GPT2FGBC(nn.Module):
         self.drop2 = nn.Dropout(args.dropout)
         self.out = nn.Linear(64, args.classes)
 
-    def forward(self, input_ids, attention_mask, token_type_ids):
-        _,last_hidden_state = self.GPT2(
+    def forward(self, input_ids, attention_mask):
+        last_hidden_state = self.GPT2(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            token_type_ids=token_type_ids,
             return_dict=False
         )
-        #print(f'Last Hidden State - {last_hidden_state.shape}')
-        bo = self.drop1(last_hidden_state)
-        #print(f'Dropout1 - {bo.shape}')
+
+        mean_last_hidden_state = self.pool_hidden_state(last_hidden_state)
+        
+        bo = self.drop1(mean_last_hidden_state)
         bo = self.linear(bo)
-        #print(f'Linear1 - {bo.shape}')
         bo = self.batch_norm(bo)
-        #print(f'BatchNorm - {bo.shape}')
         bo = nn.Tanh()(bo)
         bo = self.drop2(bo)
-        #print(f'Dropout2 - {bo.shape}')
 
         output = self.out(bo)
-        #print(f'Output - {output.shape}')
+
         return output
+
+    def pool_hidden_state(self, last_hidden_state):
+        last_hidden_state = last_hidden_state[0]
+        mean_last_hidden_state = torch.mean(last_hidden_state, 1)
+        return mean_last_hidden_state
 
 class RobertaFGBC(nn.Module):
     def __init__(self, pretrained_model = args.pretrained_model):
