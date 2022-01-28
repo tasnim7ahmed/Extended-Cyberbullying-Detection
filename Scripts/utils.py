@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, auc
 
 from common import get_parser
-from model import BertFGBC, RobertaFGBC, XLNetFGBC, DistilBertFGBC
-from dataset import DatasetBert, DatasetRoberta, DatasetXLNet, DatasetDistilBert
+from model import BertFGBC, RobertaFGBC, XLNetFGBC, DistilBertFGBC, GPT2FGBC
+from dataset import DatasetBert, DatasetRoberta, DatasetXLNet, DatasetDistilBert, DatasetGPT2
 
 parser = get_parser()
 args = parser.parse_args()
@@ -50,13 +50,15 @@ def load_prediction():
     xlnet_path = (f'{args.output_path}xlnet-base-cased---test_acc---0.949685534591195.csv')
     roberta_path = (f'{args.output_path}roberta-base---test_acc---0.949685534591195.csv')
     distilbert_path = (f'{args.output_path}distilbert-base-uncased---test_acc---0.9275471698113208.csv')
+    gpt2_path = (f'{args.output_path}gpt2---test_acc---0.9275471698113208.csv')
 
     bert = pd.read_csv(bert_path)
     xlnet = pd.read_csv(xlnet_path)
     roberta = pd.read_csv(roberta_path)
     distilbert = pd.read_csv(distilbert_path)
+    gpt2 = pd.read_csv(gpt2_path)
 
-    return bert, xlnet, roberta, distilbert
+    return bert, xlnet, roberta, distilbert, gpt2
 
 def print_stats(max_vote_df, bert, xlnet, roberta, distilbert):
     print(max_vote_df.head())
@@ -96,6 +98,8 @@ def generate_dataset_for_ensembling(pretrained_model, df):
         dataset = DatasetXLNet(text=df.text.values, target=df.target.values, pretrained_model="xlnet-base-cased")
     elif(pretrained_model == "distilbert-base-uncased"):
         dataset = DatasetDistilBert(text=df.text.values, target=df.target.values, pretrained_model="distilbert-base-uncased")
+    elif(pretrained_model == "gpt2"):
+        dataset = DatasetGPT2(text=df.text.values, target=df.target.values, pretrained_model="gpt2")
 
     data_loader = torch.utils.data.DataLoader(
         dataset = dataset,
@@ -110,18 +114,21 @@ def load_models():
     xlnet_path = (f'{args.model_path}xlnet-base-cased_Best_Val_Acc.bin')
     roberta_path = (f'{args.model_path}roberta-base_Best_Val_Acc.bin')
     distilbert_path = (f'{args.model_path}distilbert-base-uncased_Best_Val_Acc.bin')
+    gpt2_path = (f'{args.model_path}gpt2_Best_Val_Acc.bin')
 
     bert = BertFGBC(pretrained_model="bert-base-uncased")
     xlnet = XLNetFGBC(pretrained_model="xlnet-base-cased")
     roberta = RobertaFGBC(pretrained_model="roberta-base")
     distilbert = DistilBertFGBC(pretrained_model="distilbert-base-uncased")
+    gpt2 = GPT2FGBC(pretrained_model="gpt2")
 
     bert.load_state_dict(torch.load(bert_path))
     xlnet.load_state_dict(torch.load(xlnet_path))
     roberta.load_state_dict(torch.load(roberta_path))
     distilbert.load_state_dict(torch.load(distilbert_path))
+    gpt2.load_state_dict(torch.load(gpt2_path))
 
-    return bert, xlnet, roberta, distilbert
+    return bert, xlnet, roberta, distilbert, gpt2
 
 def oneHot(arr):
     b = np.zeros((arr.size, arr.max()+1))

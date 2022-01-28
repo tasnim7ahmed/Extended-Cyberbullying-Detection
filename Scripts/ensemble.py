@@ -19,13 +19,14 @@ torch.cuda.manual_seed(args.seed)
 def max_vote():
     print(f'\n---Max voting ensemble---\n')
 
-    bert, xlnet, roberta, distilbert = load_prediction()
+    bert, xlnet, roberta, distilbert, gpt2 = load_prediction()
 
     target = []
     bert_pred = []
     xlnet_pred = []
     roberta_pred = []
     distilbert_pred = []
+    gpt2_pred = []
 
     for index in range(len(bert)):
        target.append(bert['target'][index])
@@ -33,6 +34,7 @@ def max_vote():
        xlnet_pred.append(xlnet['y_pred'][index])
        roberta_pred.append(roberta['y_pred'][index])
        distilbert_pred.append(distilbert['y_pred'][index])
+       gpt2_pred.append(gpt2['y_pred'][index])
 
     max_vote_df = pd.DataFrame()
     max_vote_df['target'] = target
@@ -40,6 +42,7 @@ def max_vote():
     max_vote_df['xlnet'] = xlnet_pred
     max_vote_df['roberta'] = roberta_pred
     max_vote_df['distilbert'] = distilbert_pred
+    max_vote_df['gpt2'] = gpt2_pred
 
     # print_stats(max_vote_df, bert, xlnet, roberta, distilbert)
 
@@ -55,7 +58,7 @@ def max_vote():
     evaluate_ensemble(max_vote_df)
 
 def averaging():
-    bert, xlnet, roberta, distilbert = load_models()
+    bert, xlnet, roberta, distilbert, gpt2 = load_models()
     test_df = pd.read_csv(f'{args.dataset_path}test.csv').dropna()
     device = set_device()
 
@@ -78,11 +81,16 @@ def averaging():
     test_data_loader = generate_dataset_for_ensembling(pretrained_model="distilbert-base-uncased", df=test_df)
     distilbert_output, target, proba = test_eval_fn_ensemble(test_data_loader, distilbert, device, pretrained_model="distilbert-base-uncased")
     del distilbert, test_data_loader
+
+    gpt2.to(device)
+    test_data_loader = generate_dataset_for_ensembling(pretrained_model="gpt2", df=test_df)
+    gpt2_output, target, proba = test_eval_fn_ensemble(test_data_loader, gpt2, device, pretrained_model="gpt2")
+    del gpt2, test_data_loader
     
     output1 = np.add(bert_output, xlnet_output)
-    output2 = np.add(roberta_output, distilbert_output)
+    output2 = np.add(roberta_output, distilbert_output, gpt2_output)
     output = np.add(output1, output2)
-    output = (np.divide(output,4.0))
+    output = (np.divide(output,5.0))
     output = np.argmax(output, axis=1)
 
     y_test = target
