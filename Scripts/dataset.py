@@ -16,8 +16,6 @@ class DatasetBert:
     def __init__(self, text, target, pretrained_model = args.pretrained_model):
         self.text = text
         self.tokenizer = BertTokenizer.from_pretrained(pretrained_model)
-        self.tokenizer.pad_token = self.tokenizer.eos_token
-        self.config.pad_token_id = self.config.eos_token_id
         self.max_length = args.max_length
         self.target = target
 
