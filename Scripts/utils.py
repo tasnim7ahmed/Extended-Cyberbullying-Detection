@@ -46,11 +46,11 @@ def sorting_function(val):
     return val[1]    
 
 def load_prediction():
-    bert_path = (f'{args.output_path}bert-base-uncased---test_acc---0.9260377358490566.csv')
-    xlnet_path = (f'{args.output_path}xlnet-base-cased---test_acc---0.949685534591195.csv')
-    roberta_path = (f'{args.output_path}roberta-base---test_acc---0.949685534591195.csv')
-    distilbert_path = (f'{args.output_path}distilbert-base-uncased---test_acc---0.9275471698113208.csv')
-    gpt2_path = (f'{args.output_path}gpt2---test_acc---0.9275471698113208.csv')
+    bert_path = (f'{args.output_path}bert-base-uncased.csv')
+    xlnet_path = (f'{args.output_path}xlnet-base-cased.csv')
+    roberta_path = (f'{args.output_path}roberta-base.csv')
+    distilbert_path = (f'{args.output_path}distilbert-base-uncased.csv')
+    gpt2_path = (f'{args.output_path}gpt2.csv')
 
     bert = pd.read_csv(bert_path)
     xlnet = pd.read_csv(xlnet_path)
