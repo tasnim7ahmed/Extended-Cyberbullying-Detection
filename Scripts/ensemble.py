@@ -83,7 +83,7 @@ def rocauc():
 
     distilbert.to(device)
     test_data_loader = generate_dataset_for_ensembling(pretrained_model="distilbert-base-uncased", df=test_df)
-    y_pred, y_test, y_proba = test_eval_fn(test_data_loader, distilbert, device, pretrained_model="distilbert-base-uncased"
+    y_pred, y_test, y_proba = test_eval_fn(test_data_loader, distilbert, device, pretrained_model="distilbert-base-uncased")
     calc_roc_auc(np.array(y_test), np.array(y_proba), name='DistilBERT')
     del distilbert, test_data_loader
 
