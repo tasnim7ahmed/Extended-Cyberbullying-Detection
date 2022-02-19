@@ -88,8 +88,9 @@ def averaging():
     del gpt2, test_data_loader
     
     output1 = np.add(bert_output, xlnet_output)
-    output2 = np.add(roberta_output, distilbert_output, gpt2_output)
+    output2 = np.add(roberta_output, distilbert_output)
     output = np.add(output1, output2)
+    output = np.add(output, gpt2_output)
     output = (np.divide(output,5.0))
     output = np.argmax(output, axis=1)
 
