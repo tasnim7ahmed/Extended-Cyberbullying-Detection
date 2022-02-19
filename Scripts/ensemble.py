@@ -87,6 +87,9 @@ def averaging():
     gpt2_output, target = test_eval_fn_ensemble(test_data_loader, gpt2, device, pretrained_model="gpt2")
     del gpt2, test_data_loader
     
+    print(bert_output)
+    print(gpt2_output)
+    print('------------------------------')
     output1 = np.add(bert_output, xlnet_output)
     output2 = np.add(roberta_output, distilbert_output)
     output = np.add(output1, output2)
