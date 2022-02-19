@@ -165,7 +165,7 @@ def averaging():
 if __name__=="__main__":
     if args.ensemble_type == "max-voting":
         max_vote()
-    elif args.ensemble_type == "roc-auc"
+    elif args.ensemble_type == "rocauc"
         rocauc()
     else:
         averaging()
