@@ -4,10 +4,11 @@ import torch
 import numpy as np
 from collections import Counter
 from sklearn.metrics import confusion_matrix, classification_report, matthews_corrcoef, f1_score, accuracy_score, precision_score, recall_score
+from Scripts.engine import test_eval_fn
 
 from evaluate import test_evaluate
 from engine import test_eval_fn_ensemble
-from utils import sorting_function, evaluate_ensemble, print_stats, load_prediction, set_device, load_models, generate_dataset_for_ensembling
+from utils import sorting_function, evaluate_ensemble, print_stats, load_prediction, set_device, load_models, generate_dataset_for_ensembling, calc_roc_auc
 from common import get_parser
 
 parser = get_parser()
@@ -56,6 +57,43 @@ def max_vote():
     max_vote_df['pred'] = preds
 
     evaluate_ensemble(max_vote_df)
+
+def rocauc():
+    bert, xlnet, roberta, distilbert, gpt2 = load_models()
+    test_df = pd.read_csv(f'{args.dataset_path}test.csv').dropna()
+    device = set_device()
+
+    bert.to(device)
+    test_data_loader = generate_dataset_for_ensembling(pretrained_model="bert-base-uncased", df =test_df)
+    y_pred, y_test, y_proba = test_eval_fn(test_data_loader, bert, device, pretrained_model="bert-base-uncased")
+    calc_roc_auc(np.array(y_test), np.array(y_proba), name='BERT')
+    del bert, test_data_loader
+
+    xlnet.to(device)
+    test_data_loader = generate_dataset_for_ensembling(pretrained_model="xlnet-base-cased", df=test_df)
+    y_pred, y_test, y_proba = test_eval_fn(test_data_loader, xlnet, device, pretrained_model="xlnet-base-cased")
+    calc_roc_auc(np.array(y_test), np.array(y_proba), name='XLNet')
+    del xlnet, test_data_loader
+
+    roberta.to(device)
+    test_data_loader = generate_dataset_for_ensembling(pretrained_model="roberta-base", df=test_df)
+    y_pred, y_test, y_proba = test_eval_fn(test_data_loader, roberta, device, pretrained_model="roberta-base")
+    calc_roc_auc(np.array(y_test), np.array(y_proba), name='RoBERTa')
+    del roberta, test_data_loader
+
+    distilbert.to(device)
+    test_data_loader = generate_dataset_for_ensembling(pretrained_model="distilbert-base-uncased", df=test_df)
+    y_pred, y_test, y_proba = test_eval_fn(test_data_loader, distilbert, device, pretrained_model="distilbert-base-uncased"
+    calc_roc_auc(np.array(y_test), np.array(y_proba), name='DistilBERT')
+    del distilbert, test_data_loader
+
+    gpt2.to(device)
+    test_data_loader = generate_dataset_for_ensembling(pretrained_model="gpt2", df=test_df)
+    y_pred, y_test, y_proba = test_eval_fn(test_data_loader, gpt2, device, pretrained_model="gpt2")
+    calc_roc_auc(np.array(y_test), np.array(y_proba), name='GPT2')
+    del gpt2, test_data_loader
+    
+    
 
 def averaging():
     bert, xlnet, roberta, distilbert, gpt2 = load_models()
@@ -127,6 +165,8 @@ def averaging():
 if __name__=="__main__":
     if args.ensemble_type == "max-voting":
         max_vote()
+    elif args.ensemble_type == "roc-auc"
+        rocauc()
     else:
         averaging()
 

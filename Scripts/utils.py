@@ -135,7 +135,7 @@ def oneHot(arr):
     b[np.arange(arr.size),arr] = 1
     return b
 
-def calc_roc_auc(all_labels, all_logits):
+def calc_roc_auc(all_labels, all_logits, name=None):
     attributes = []
     if(args.classes==6):
        attributes = ['Age', 'Ethnicity', 'Gender', 'Notcb', 'Others', 'Religion']
@@ -159,7 +159,10 @@ def calc_roc_auc(all_labels, all_logits):
     plt.ylabel('True Positive Rate')
     plt.legend(loc='lower right')
     plt.title('ROC Curve')
-    plt.savefig(f"{args.figure_path}{args.pretrained_model}---roc_auc_curve---.pdf")
+    if (name!=None):
+        plt.savefig(f"{args.figure_path}{name}---roc_auc_curve---.pdf")
+    else:
+        plt.savefig(f"{args.figure_path}{args.pretrained_model}---roc_auc_curve---.pdf")
     plt.clf()
     # Compute micro-average ROC curve and ROC area
     fpr["micro"], tpr["micro"], _ = roc_curve(all_labels.ravel(), all_logits.ravel())
