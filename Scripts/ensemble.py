@@ -57,6 +57,47 @@ def max_vote():
     max_vote_df['pred'] = preds
 
     evaluate_ensemble(max_vote_df)
+    
+def max_vote3():
+    print(f'\n---Max voting ensemble for the best three classifiers---\n')
+
+    bert, xlnet, roberta, distilbert, gpt2 = load_prediction()
+
+    target = []
+    
+    xlnet_pred = []
+    roberta_pred = []
+    
+    gpt2_pred = []
+
+    for index in range(len(bert)):
+       target.append(bert['target'][index])
+       
+       xlnet_pred.append(xlnet['y_pred'][index])
+       roberta_pred.append(roberta['y_pred'][index])
+       
+       gpt2_pred.append(gpt2['y_pred'][index])
+
+    max_vote_df = pd.DataFrame()
+    max_vote_df['target'] = target
+    
+    max_vote_df['xlnet'] = xlnet_pred
+    max_vote_df['roberta'] = roberta_pred
+    
+    max_vote_df['gpt2'] = gpt2_pred
+
+    # print_stats(max_vote_df, bert, xlnet, roberta, distilbert)
+
+    preds = []
+
+    for index in range(len(max_vote_df)):
+        values = max_vote_df.iloc[index].values[1:]
+        sorted_values = sorted(Counter(values).items(), key = sorting_function, reverse=True)
+        preds.append(sorted_values[0][0])
+        
+    max_vote_df['pred'] = preds
+
+    evaluate_ensemble(max_vote_df)
 
 def rocauc():
     bert, xlnet, roberta, distilbert, gpt2 = load_models()
@@ -156,6 +197,59 @@ def averaging():
 
     conf_mat = confusion_matrix(y_test,y_pred)
     print(conf_mat)
+    
+
+def averaging3():
+    xlnet, roberta, gpt2 = load_models()
+    test_df = pd.read_csv(f'{args.dataset_path}test.csv').dropna()
+    device = set_device()
+
+    
+
+    xlnet.to(device)
+    test_data_loader = generate_dataset_for_ensembling(pretrained_model="xlnet-base-cased", df=test_df)
+    xlnet_output, target = test_eval_fn_ensemble(test_data_loader, xlnet, device, pretrained_model="xlnet-base-cased")
+    del xlnet, test_data_loader
+
+    roberta.to(device)
+    test_data_loader = generate_dataset_for_ensembling(pretrained_model="roberta-base", df=test_df)
+    roberta_output, target = test_eval_fn_ensemble(test_data_loader, roberta, device, pretrained_model="roberta-base")
+    del roberta, test_data_loader
+
+    
+
+    gpt2.to(device)
+    test_data_loader = generate_dataset_for_ensembling(pretrained_model="gpt2", df=test_df)
+    gpt2_output, target = test_eval_fn_ensemble(test_data_loader, gpt2, device, pretrained_model="gpt2")
+    del gpt2, test_data_loader
+    
+    output1 = np.add(gpt2_output, xlnet_output)
+    output2 = np.add(roberta_output, output1)
+    
+    output = (np.divide(output2,3.0))
+    output = np.argmax(output, axis=1)
+
+    y_test = target
+    y_pred = output
+    
+    print(f'\n---Probability averaging ensemble---\n')
+    acc = accuracy_score(y_test, y_pred)
+    mcc = matthews_corrcoef(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average='weighted')
+    recall = recall_score(y_test, y_pred, average='weighted')
+    f1 = f1_score(y_test, y_pred, average='weighted')
+    
+    print('Accuracy:', acc)
+    print('Mcc Score:', mcc)
+    print('Precision:', precision)
+    print('Recall:', recall)
+    print('F1_score:', f1)
+    print('classification_report: ', classification_report(y_test, y_pred, digits=4))
+    
+
+
+    conf_mat = confusion_matrix(y_test,y_pred)
+    print(conf_mat)
 
 
 
@@ -167,6 +261,10 @@ if __name__=="__main__":
         max_vote()
     elif args.ensemble_type == "rocauc":
         rocauc()
+    elif args.ensemble_type == "mv3":
+        max_vote3()
+    elif args.ensemble_type == "pa3":
+        averaging3()
     else:
         averaging()
 
