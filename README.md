@@ -1,6 +1,5 @@
 # Performance analysis of transformer-based architectures and their ensembles to detect trait-based cyberbullying
 
-# Multi-Class Text Classification with Transformers
 
 ## Prerequisites
 - Python 3
